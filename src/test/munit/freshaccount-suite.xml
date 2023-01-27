@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="freshaccount-suite.xml" />
+	<munit:test name="freshaccountFlow-test" doc:id="1ed24d78-091a-4eba-8b2d-22d2b4e28e33" >
+		<munit:behavior >
+			<munit-tools:spy doc:name="Spy Insert" doc:id="3bf240c4-0576-4303-ae9d-d3e69d96a1c4" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ce0fb097-b190-4e0e-bca2-600803a34ff5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert doc:name="Assert payload" doc:id="e3abf1d4-c96b-459e-993d-070377acaa85" message="The payload does not match">
+						<munit-tools:that ><![CDATA[#[%dw 2.0
+import freshaccountFlowtest::spy_assert_payload
+---
+spy_assert_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+					</munit-tools:assert>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert doc:name="Assert payload" doc:id="dac4e99d-3254-4de5-91a5-a37f5c723ff1" message="The payload does not match">
+						<munit-tools:that ><![CDATA[#[%dw 2.0
+import freshaccountFlowtest::spy_assert_payload1
+---
+spy_assert_payload1::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+					</munit-tools:assert>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+			<munit:set-event doc:name="Set Input" doc:id="4b600efc-dc76-434c-b5e0-fb4e5c076859" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://freshaccountFlowtest\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://freshaccountFlowtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to freshaccountFlow" doc:id="538fa225-4c2c-4b59-9d19-3318c6590a5c" name="freshaccountFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="b35688cb-2c19-4f4f-8560-a24336e495ac" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import freshaccountFlowtest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+			<munit-tools:verify-call doc:name="Verify Transform Message" doc:id="6131efbf-92c6-4784-8b2c-584ee3ba7cf6" processor="ee:transform" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="83bcde22-ad10-4f9e-8e55-032b84557bfd" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+			<munit-tools:verify-call doc:name="Verify Insert" doc:id="d485b2ff-614f-446b-8e07-3be22da468a7" processor="db:insert" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ce0fb097-b190-4e0e-bca2-600803a34ff5" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

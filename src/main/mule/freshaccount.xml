@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8425bdd9-c738-4b83-bc21-74f2407b59e2" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="821e755b-d196-4622-8032-5fb1e2db6979" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="fresh1" />
+	</db:config>
+	<flow name="freshaccountFlow" doc:id="0c404aab-34a7-430c-84fa-d733f964b124" >
+		<http:listener doc:name="Listener" doc:id="2c10d08d-ff40-4cbe-92a3-77c901808ab6" config-ref="HTTP_Listener_config" path="/freshaccount"/>
+		<db:insert doc:id="ce0fb097-b190-4e0e-bca2-600803a34ff5" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into infresh1(name, phone, email, gender, dateOfBirth) 
+values (:N, :P, :E, :G, :D) ;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	N:payload.Name,
+	P:payload.PhoneNo,
+	E:payload.EmailId,
+	G:payload.Gender,
+	D:payload.DateOfBirth
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="83bcde22-ad10-4f9e-8e55-032b84557bfd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"Account created successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b3b168da-33f0-49dc-bb18-91f0f7be9430" message="#[payload]"/>
+	</flow>
+</mule>
